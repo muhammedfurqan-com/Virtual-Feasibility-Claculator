@@ -51,13 +51,15 @@ def safe_read_table(obj, filename=None):
     name = (getattr(obj, "name", None) or filename or "").lower()
     try:
         if name.endswith((".xlsx", ".xls")):
-            return pd.read_excel(obj)
-    except Exception:
-        pass
+            # Force Excel engine to avoid errors in cloud
+            return pd.read_excel(obj, engine="openpyxl")
+    except Exception as e:
+        st.error(f"Excel read failed: {e}")
     try:
         return pd.read_csv(obj, sep=None, engine="python", skipinitialspace=True)
-    except Exception:
-        return pd.read_csv(obj, sep=",", engine="python", skipinitialspace=True)
+    except Exception as e:
+        st.error(f"CSV read failed: {e}")
+        raise
 
 def normalize_latlon_names(df):
     """
