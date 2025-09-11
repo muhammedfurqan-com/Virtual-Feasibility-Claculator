@@ -152,11 +152,11 @@ page = st.sidebar.radio("Navigation", ["App", "Admin"])
 # Admin page
 # -------------------------
 if page == "Admin":
-	try:
-    import openpyxl
-    st.success(f"openpyxl import OK — version {openpyxl.__version__}")
+try:
+	import openpyxl
+	st.success(f"openpyxl import OK — version {openpyxl.__version__}")
 except Exception as e:
-    st.error(f"openpyxl NOT importable at runtime: {e}")
+	st.error(f"openpyxl NOT importable at runtime: {e}")
 
     st.header("Admin — Backend & Settings")
 
