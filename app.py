@@ -152,18 +152,7 @@ page = st.sidebar.radio("Navigation", ["App", "Admin"])
 # Admin page
 # -------------------------
 if page == "Admin":
-	try:
-		import openpyxl
-		st.success(f"openpyxl import OK — version {openpyxl.__version__}")
-	except Exception as e:
-		st.error(f"openpyxl NOT importable at runtime: {e}")
-
-    st.header("Admin — Backend & Settings")
-
-	
-
-
-  # Upload backend file
+	  # Upload backend file
     st.subheader("Upload backend master (CSV/XLSX)")
     backend_upload = st.file_uploader("Upload file (will replace current backend)", type=["csv","xlsx"])
     if backend_upload is not None:
