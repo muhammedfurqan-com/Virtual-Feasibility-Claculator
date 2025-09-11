@@ -179,6 +179,13 @@ if page == "Admin":
         st.info("No backend file found. Upload above.")
 
     st.markdown("---")
+	    # Debug: confirm openpyxl is available
+    try:
+        import openpyxl
+        st.success(f"openpyxl import OK — version {openpyxl.__version__}")
+    except Exception as e:
+        st.error(f"openpyxl NOT importable at runtime: {e}")
+
     
 # Config: feasible distance and suffix for backend conflict
     st.subheader("Settings")
