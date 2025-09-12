@@ -16,6 +16,7 @@ import math
 from io import StringIO
 import os
 import json
+import streamlit_authenticator as stauth
 # -------------------------
 # Config / filenames
 # -------------------------
@@ -143,14 +144,53 @@ def backend_column_merge_dict(backend_row, input_cols, suffix):
 # -------------------------
 st.set_page_config(page_title="Nearest Site Finder", layout="wide")
 st.title("Nearest Site Finder")
+# -------------------------
+# Authentication setup
+# -------------------------
+# Define credentials
+credentials = {
+    "usernames": {
+        "admin": {
+            "name": "Administrator",
+            # default password = "admin123", you can change it later via UI
+            "password": stauth.Hasher(["admin123"]).generate()[0]
+        }
+    }
+}
+
+# Initialize authenticator
+authenticator = stauth.Authenticate(
+    credentials,
+    cookie_name="nearest_app",
+    key="abcdef",
+    cookie_expiry_days=1
+)
+
+# Login widget
+name, auth_status, username = authenticator.login("Login", "main")
+
+if auth_status is False:
+    st.error("Username/password is incorrect")
+    st.stop()
+elif auth_status is None:
+    st.warning("Please enter your username and password")
+    st.stop()
+
+# Show logout button in sidebar
+with st.sidebar:
+    authenticator.logout("Logout", "sidebar")
 
 # Sidebar navigation
+
 page = st.sidebar.radio("Navigation", ["App", "Admin"])
 
 # -------------------------
 # Admin page
 # -------------------------
 if page == "Admin":
+    if username != "admin":
+        st.error("You do not have access to this page.")
+        st.stop()
 	  # Upload backend file
     st.subheader("Upload backend master (CSV/XLSX)")
     backend_upload = st.file_uploader("Upload file (will replace current backend)", type=["csv","xlsx"])
@@ -195,6 +235,14 @@ if page == "Admin":
        cfg["backend_conflict_suffix"] = new_suffix.strip() or "_matched"
        save_config(cfg)
        st.success("Settings saved to app_config.json")
+
+    st.markdown("---")
+    st.subheader("Change Password")
+    try:
+        if authenticator.reset_password(username, "Reset password"):
+            st.success("Password changed successfully")
+    except Exception as e:
+        st.error(e)
 
 # -------------------------
 # App (User) page
