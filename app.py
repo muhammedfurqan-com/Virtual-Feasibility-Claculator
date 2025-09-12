@@ -17,10 +17,10 @@ from io import StringIO
 import os
 import json
 
+os.system("pip install openpyxl==3.1.2")
 # -------------------------
 # Config / filenames
 # -------------------------
-df = pd.read_excel("Copy of List.xlsx", engine="openpyxl")
 CONFIG_FILE = "app_config.json"
 BACKEND_FILE = "backend_data.csv"
 DEFAULT_CONFIG = {
