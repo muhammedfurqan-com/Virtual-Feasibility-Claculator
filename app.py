@@ -17,6 +17,7 @@ from io import StringIO
 import os
 import json
 import streamlit_authenticator as stauth
+print(stauth.Hasher(["admin123"]).generate())
 # -------------------------
 # Config / filenames
 # -------------------------
