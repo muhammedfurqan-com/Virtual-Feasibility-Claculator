@@ -159,26 +159,26 @@ credentials = {
 }
 
 # Initialize authenticator
-authenticator = stauth.Authenticate(
-    credentials,
-    cookie_name="nearest_app",
-    key="abcdef",
-    cookie_expiry_days=1
-)
+#authenticator = stauth.Authenticate(
+ #   credentials,
+  #  cookie_name="nearest_app",
+   # key="abcdef",
+    #cookie_expiry_days=1
+#)
 
 # Login widget
 name, auth_status, username = authenticator.login("Login", "main")
 
-if auth_status is False:
-    st.error("Username/password is incorrect")
-    st.stop()
-elif auth_status is None:
-    st.warning("Please enter your username and password")
-    st.stop()
+#if auth_status is False:
+ #   st.error("Username/password is incorrect")
+  #  st.stop()
+#elif auth_status is None:
+ #   st.warning("Please enter your username and password")
+  #  st.stop()
 
 # Show logout button in sidebar
-with st.sidebar:
-    authenticator.logout("Logout", "sidebar")
+#with st.sidebar:
+ #   authenticator.logout("Logout", "sidebar")
 
 # Sidebar navigation
 
@@ -188,9 +188,9 @@ page = st.sidebar.radio("Navigation", ["App", "Admin"])
 # Admin page
 # -------------------------
 if page == "Admin":
-    if username != "admin":
-        st.error("You do not have access to this page.")
-        st.stop()
+   # if username != "admin":
+    #    st.error("You do not have access to this page.")
+     #   st.stop()
 	  # Upload backend file
     st.subheader("Upload backend master (CSV/XLSX)")
     backend_upload = st.file_uploader("Upload file (will replace current backend)", type=["csv","xlsx"])
