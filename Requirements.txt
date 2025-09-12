@@ -1,5 +1,0 @@
-streamlit>=1.32.0
-pandas>=2.0.0
-numpy>=1.23.0
-openpyxl
-xlrd>=2.0.1
