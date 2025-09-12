@@ -17,6 +17,7 @@ from io import StringIO
 import os
 import json
 import streamlit_authenticator as stauth
+from streamlit_authenticator import Authenticate
 # -------------------------
 # Config / filenames
 # -------------------------
@@ -158,7 +159,7 @@ credentials = {
 }
 
 # Initialize authenticator
-authenticator = stauth.Authenticator(
+authenticator = stauth.Authenticate(
     credentials,
     cookie_name="nearest_app",
     key="abcdef",
