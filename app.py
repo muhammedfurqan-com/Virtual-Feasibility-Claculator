@@ -17,7 +17,6 @@ from io import StringIO
 import os
 import json
 import streamlit_authenticator as stauth
-print(stauth.Hasher(["admin123"]).generate())
 # -------------------------
 # Config / filenames
 # -------------------------
@@ -153,8 +152,7 @@ credentials = {
     "usernames": {
         "admin": {
             "name": "Administrator",
-            # default password = "admin123", you can change it later via UI
-            "password": stauth.Hasher(["admin123"]).generate()[0]
+            "password": "$2b$12$Gn1YqDNGomjB7lMMSuXjR.WblcKdnI/x3sS8U1jOBCyUorW5rpV7S"
         }
     }
 }
