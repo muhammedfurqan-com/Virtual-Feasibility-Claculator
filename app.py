@@ -158,7 +158,7 @@ credentials = {
 }
 
 # Initialize authenticator
-authenticator = stauth.Authenticate(
+authenticator = stauth.Authenticator(
     credentials,
     cookie_name="nearest_app",
     key="abcdef",
