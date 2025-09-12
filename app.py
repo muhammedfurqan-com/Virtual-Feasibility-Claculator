@@ -16,8 +16,6 @@ import math
 from io import StringIO
 import os
 import json
-
-os.system("pip install openpyxl==3.1.2")
 # -------------------------
 # Config / filenames
 # -------------------------
