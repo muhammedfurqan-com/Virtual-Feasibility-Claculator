@@ -219,11 +219,11 @@ if page == "Admin":
 
     st.markdown("---")
 	    # Debug: confirm openpyxl is available
-    try:
-        import openpyxl
-        st.success(f"openpyxl import OK — version {openpyxl.__version__}")
-    except Exception as e:
-        st.error(f"openpyxl NOT importable at runtime: {e}")
+   # try:
+    #    import openpyxl
+     #   st.success(f"openpyxl import OK — version {openpyxl.__version__}")
+    #except Exception as e:
+     #   st.error(f"openpyxl NOT importable at runtime: {e}")
 
     
 # Config: feasible distance and suffix for backend conflict
@@ -237,12 +237,12 @@ if page == "Admin":
        st.success("Settings saved to app_config.json")
 
     st.markdown("---")
-    st.subheader("Change Password")
-    try:
-        if authenticator.reset_password(username, "Reset password"):
-            st.success("Password changed successfully")
-    except Exception as e:
-        st.error(e)
+  #  st.subheader("Change Password")
+   # try:
+    #    if authenticator.reset_password(username, "Reset password"):
+     #       st.success("Password changed successfully")
+    #except Exception as e:
+     #   st.error(e)
 
 # -------------------------
 # App (User) page
