@@ -285,8 +285,8 @@ else:
 # -------------------------
 # App (User) page
 # -------------------------
-elif page == "App":
-    st.header("User — Upload or Paste input & find nearest backend site")
+#elif page == "App":
+ #   st.header("User — Upload or Paste input & find nearest backend site")
 
 
     # Load backend
