@@ -160,7 +160,6 @@ st.set_page_config(page_title="Nearest Site Finder", layout="wide")
 st.title("Nearest Site Finder")
 
 # -------------------------
-# -------------------------
 # Authentication setup (admin only)
 # -------------------------
 credentials = {
@@ -173,15 +172,19 @@ credentials = {
 }
 
 authenticator = stauth.Authenticate(
-    credentials,
+    credentials=credentials,
     cookie_name=st.secrets["cookie"]["name"],
     key=st.secrets["cookie"]["key"],
     cookie_expiry_days=int(st.secrets["cookie"]["expiry_days"])
 )
 
 # Admin login widget
-name, authentication_status, username = authenticator.login("Admin Login", "sidebar")
+name, authentication_status, username = authenticator.login(
+    label="Admin Login",
+    location="sidebar"
+)
 
+# Handle authentication
 if authentication_status is False:
     st.error("Username/password is incorrect")
     st.stop()
@@ -189,7 +192,7 @@ elif authentication_status is None:
     st.warning("Please enter your username and password")
     st.stop()
 
-# Show logout button in sidebar
+# Logout button in sidebar
 with st.sidebar:
     authenticator.logout("Logout", "sidebar")
 
@@ -200,15 +203,9 @@ page = st.sidebar.radio("Navigation", ["App", "Admin"])
 # Admin page
 # -------------------------
 if page == "Admin":
-    if authentication_status is False:
-        st.error("Username/password is incorrect")
-        st.stop()
-    elif authentication_status is None:
-        st.warning("Please enter your username and password")
-        st.stop()
-
-    st.subheader("Upload backend master (CSV/XLSX)")
-    backend_upload = st.file_uploader("Upload file (will replace current backend)", type=["csv","xlsx"])
+    st.subheader("Admin Panel")
+    
+    backend_upload = st.file_uploader("Upload backend master (CSV/XLSX)", type=["csv","xlsx"])
     if backend_upload is not None:
         try:
             df = safe_read_table(backend_upload, filename=getattr(backend_upload, "name", None))
@@ -244,4 +241,4 @@ if page == "App":
         st.stop()
 
     st.write(f"**Backend rows:** {len(backend_df)}")
-    # ... rest of the app logic remains unchanged ...
+    # ... rest of your user page logic here ...
