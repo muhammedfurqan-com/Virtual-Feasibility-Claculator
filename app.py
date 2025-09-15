@@ -112,22 +112,50 @@ def find_nearest_sites(df, lat, lon, n=5):
 #usernames = st.secrets["credentials"]["usernames"]
 #passwords = st.secrets["credentials"]["passwords"]
 
-credentials = {
-    "usernames": {
-        usernames[0]: {
-            "name": "Admin",
-            "password": passwords[0],
+#credentials = {
+ #   "usernames": {
+  #      usernames[0]: {
+   #         "name": "Admin",
+    #        "password": passwords[0],
+     #   }
+    #}
+#}
+
+#authenticator = stauth.Authenticate(
+ #   credentials,
+  #  "nearest_site_app",
+   # "auth",
+    #cookie_expiry_days=1,
+#)
+
+
+# Build config directly from secrets.toml
+config = {
+    "credentials": {
+        "usernames": {
+            "admin": {
+                "name": st.secrets["credentials"]["usernames"]["admin"]["name"],
+                "password": st.secrets["credentials"]["usernames"]["admin"]["password"],
+            }
         }
-    }
+    },
+    "cookie": {
+        "expiry_days": st.secrets["cookie"]["expiry_days"],
+        "key": st.secrets["cookie"]["key"],
+        "name": st.secrets["cookie"]["name"],
+    },
+    "preauthorized": {
+        "emails": st.secrets["preauthorized"]["emails"],
+    },
 }
 
 authenticator = stauth.Authenticate(
-    credentials,
-    "nearest_site_app",
-    "auth",
-    cookie_expiry_days=1,
+    config["credentials"],
+    config["cookie"]["name"],
+    config["cookie"]["key"],
+    config["cookie"]["expiry_days"],
+    config["preauthorized"],
 )
-
 
 # ================================================================
 # Streamlit UI
