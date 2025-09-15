@@ -170,11 +170,13 @@ credentials = {
 }
 
 authenticator = stauth.Authenticate(
-    credentials,
+    credentials=st.secrets["credentials"],  # reads usernames
     cookie_name=st.secrets["cookie"]["name"],
     key=st.secrets["cookie"]["key"],
-    cookie_expiry_days=int(st.secrets["cookie"]["expiry_days"])  # CAST TO INT
+    cookie_expiry_days=int(st.secrets["cookie"]["expiry_days"])
 )
+
+name, authentication_status, username = authenticator.login("Admin Login", "main"))
 
 name, authentication_status, username = authenticator.login("Admin Login", "main")
 
