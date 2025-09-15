@@ -315,12 +315,12 @@ if "user_df" not in st.session_state:
 
     # Input method
 st.subheader("1) Provide your input data")
-    tab1, tab2 = st.tabs(["Upload file", "Paste table"])
+tab1, tab2 = st.tabs(["Upload file", "Paste table"])
 
-    with tab1:
-        user_file = st.file_uploader("Upload CSV/XLSX input (contains your points)", type=["csv","xlsx"], key="upload_input")
-        if user_file is not None:
-            try:
+with tab1:
+user_file = st.file_uploader("Upload CSV/XLSX input (contains your points)", type=["csv","xlsx"], key="upload_input")
+if user_file is not None:
+        	try:
                 udf = safe_read_table(user_file, filename=getattr(user_file, "name", None))
                 udf = normalize_latlon_names(udf)
                 st.session_state["user_df"] = udf
