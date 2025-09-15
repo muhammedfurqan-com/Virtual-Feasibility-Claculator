@@ -1,10 +1,9 @@
 # app.py
 """
-Final clean version of the Nearest Location Finder app with admin authentication.
-- Sidebar: App (User) / Admin
-- Admin: upload backend CSV/XLSX, set feasible distance, set backend-duplicate suffix
-- User: upload/paste input, parse, choose lat/lon if needed, apply filters, choose Nth,
-        compute nearest matching row(s), output combined rows
+Nearest Site Finder App
+- Admin login enabled (admin/admin)
+- Users can access app without login
+- GitHub backend load/save
 """
 
 import streamlit as st
@@ -14,9 +13,9 @@ import math
 from io import StringIO
 import os
 import json
-import io
-from github import Github
 import streamlit_authenticator as stauth
+from github import Github
+import io
 
 # -------------------------
 # GitHub setup
@@ -37,15 +36,12 @@ DEFAULT_CONFIG = {
     "backend_conflict_suffix": "_matched"
 }
 
-# -------------------------
-# Config helpers
-# -------------------------
 def load_config():
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, "r") as f:
                 return json.load(f)
-        except Exception:
+        except:
             return DEFAULT_CONFIG.copy()
     return DEFAULT_CONFIG.copy()
 
@@ -53,56 +49,59 @@ def save_config(cfg):
     with open(CONFIG_FILE, "w") as f:
         json.dump(cfg, f)
 
+def load_backend_from_github():
+    try:
+        contents = repo.get_contents(file_path)
+        data = contents.decoded_content.decode()
+        df = pd.read_csv(io.StringIO(data))
+        df = normalize_latlon_names(df)
+        return df
+    except Exception as e:
+        st.warning(f"Could not load backend file: {e}")
+        return None
+
+def save_backend_to_github(df):
+    csv_bytes = df.to_csv(index=False).encode()
+    try:
+        contents = repo.get_contents(file_path)
+        repo.update_file(contents.path, "Update backend data", csv_bytes, contents.sha)
+        st.success("✅ Backend updated in GitHub!")
+    except Exception:
+        repo.create_file(file_path, "Create backend data", csv_bytes)
+        st.success("✅ Backend created in GitHub!")
+
 cfg = load_config()
 
 # -------------------------
-# Backend helpers
+# Helpers
 # -------------------------
-def normalize_latlon_names(df):
-    col_map = {}
-    for col in df.columns:
-        low = col.strip().lower()
-        if ("latitute" in low) or ("latitude" in low) or low == "lat" or (low.startswith("lat") and not low.startswith("platform")):
-            col_map[col] = "Latitude"
-            continue
-        if ("longitude" in low) or low in ("lon", "lng", "long") or low.startswith("lon") or low.startswith("long"):
-            col_map[col] = "Longitude"
-            continue
-    if col_map:
-        df = df.rename(columns=col_map)
-    return df
-
 def safe_read_table(obj, filename=None):
     name = (getattr(obj, "name", None) or filename or "").lower()
     try:
         if name.endswith((".xlsx", ".xls")):
             return pd.read_excel(obj, engine="openpyxl")
-    except Exception as e:
-        st.error(f"Excel read failed: {e}")
-    try:
-        return pd.read_csv(obj, sep=None, engine="python", skipinitialspace=True)
-    except Exception as e:
-        st.error(f"CSV read failed: {e}")
-        raise
+    except:
+        pass
+    return pd.read_csv(obj, sep=None, engine="python", skipinitialspace=True)
+
+def normalize_latlon_names(df):
+    col_map = {}
+    for col in df.columns:
+        low = col.strip().lower()
+        if "lat" in low:
+            col_map[col] = "Latitude"
+        if "lon" in low:
+            col_map[col] = "Longitude"
+    return df.rename(columns=col_map)
 
 def detect_latlon_candidates(df):
     lat, lon = None, None
     for c in df.columns:
         k = "".join(ch.lower() for ch in str(c).strip() if ch.isalnum())
-        if lat is None and k in ("lat", "latitude", "latitute", "latdeg", "latit"):
+        if lat is None and k in ("lat", "latitude", "latitute"):
             lat = c
-        if lon is None and k in ("lon", "longitude", "lng", "long", "longit"):
+        if lon is None and k in ("lon", "longitude", "lng", "long"):
             lon = c
-    if lat is None:
-        for c in df.columns:
-            if "lat" in c.lower() and "latitude" not in c.lower():
-                lat = c
-                break
-    if lon is None:
-        for c in df.columns:
-            if "lon" in c.lower() or "lng" in c.lower():
-                lon = c
-                break
     return lat, lon
 
 def vectorized_haversine(lat1, lon1, backend_lat_rad, backend_lon_rad):
@@ -134,27 +133,6 @@ def backend_column_merge_dict(backend_row, input_cols, suffix):
             mapping[c] = c
     return mapping
 
-def load_backend_from_github():
-    try:
-        contents = repo.get_contents(file_path)
-        data = contents.decoded_content.decode()
-        df = pd.read_csv(io.StringIO(data))
-        df = normalize_latlon_names(df)
-        return df
-    except Exception as e:
-        st.warning(f"Could not load backend file: {e}")
-        return None
-
-def save_backend_to_github(df):
-    csv_bytes = df.to_csv(index=False).encode()
-    try:
-        contents = repo.get_contents(file_path)
-        repo.update_file(contents.path, "Update backend data", csv_bytes, contents.sha)
-        st.success("✅ Backend updated in GitHub!")
-    except Exception:
-        repo.create_file(file_path, "Create backend data", csv_bytes)
-        st.success("✅ Backend created in GitHub!")
-
 # -------------------------
 # Streamlit UI
 # -------------------------
@@ -162,7 +140,7 @@ st.set_page_config(page_title="Nearest Site Finder", layout="wide")
 st.title("Nearest Site Finder")
 
 # -------------------------
-# Authentication setup
+# Authentication (Admin only)
 # -------------------------
 authenticator = stauth.Authenticate(
     st.secrets["credentials"],
@@ -171,20 +149,19 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=st.secrets["cookie"]["expiry_days"]
 )
 
+# Admin login status
+name, authentication_status, username = authenticator.login("Login", "main")
+
+# Sidebar navigation
 page = st.sidebar.radio("Navigation", ["App", "Admin"])
 
 # -------------------------
 # Admin page
 # -------------------------
 if page == "Admin":
-    name, authentication_status, username = authenticator.login("Login", "main")
-    if authentication_status is False:
-        st.error("Username/password is incorrect")
+    if authentication_status != True:
+        st.error("Admin login required")
         st.stop()
-    elif authentication_status is None:
-        st.warning("Please enter your username and password")
-        st.stop()
-    authenticator.logout("Logout", "sidebar")
 
     st.subheader("Upload backend master (CSV/XLSX)")
     backend_upload = st.file_uploader("Upload file (will replace current backend)", type=["csv","xlsx"])
@@ -203,7 +180,6 @@ if page == "Admin":
     else:
         st.info("No backend file found. Upload above.")
 
-    st.markdown("---")
     st.subheader("Settings")
     new_feasible = st.number_input("Feasible distance (km)", min_value=0.1, value=float(cfg.get("feasible_km",20.0)))
     new_suffix = st.text_input("Suffix to add to backend columns that conflict with input names", value=cfg.get("backend_conflict_suffix","_matched"))
@@ -214,71 +190,97 @@ if page == "Admin":
         st.success("Settings saved to app_config.json")
 
 # -------------------------
-# User page
+# App (User) page
 # -------------------------
 if page == "App":
     backend_df = load_backend_from_github()
     if backend_df is None:
-        st.warning("No backend file found. Ask Admin to upload backend data.")
+        st.warning("No backend file found in GitHub. Ask Admin to upload backend data.")
         st.stop()
 
     st.write(f"**Backend rows:** {len(backend_df)}")
-
     if "user_df" not in st.session_state:
         st.session_state["user_df"] = None
 
-    st.subheader("1) Provide your input data")
-    tab1, tab2 = st.tabs(["Upload file", "Paste table"])
-    with tab1:
-        user_file = st.file_uploader("Upload CSV/XLSX input (contains your points)", type=["csv","xlsx"], key="upload_input")
-        if user_file is not None:
-            try:
-                udf = safe_read_table(user_file, filename=getattr(user_file, "name", None))
-                udf = normalize_latlon_names(udf)
-                st.session_state["user_df"] = udf
-                st.success(f"Uploaded input data: {len(udf)} rows")
-            except Exception as e:
-                st.error(f"Failed to parse uploaded input: {e}")
-    with tab2:
-        pasted = st.text_area("Paste tab-separated or comma-separated data (include header)", height=200, key="paste_input")
-        if st.button("Parse pasted data", key="parse_paste"):
-            if not pasted.strip():
-                st.warning("Please paste some data first.")
-            else:
-                try:
-                    if "\t" in pasted:
-                        udf = pd.read_csv(StringIO(pasted), sep="\t", engine="python")
-                    elif "," in pasted:
-                        udf = pd.read_csv(StringIO(pasted), sep=",", engine="python")
-                    else:
-                        udf = pd.read_csv(StringIO(pasted), delim_whitespace=True, engine="python")
-                    udf = normalize_latlon_names(udf)
-                    st.session_state["user_df"] = udf
-                    st.success(f"Parsed pasted input: {len(udf)} rows")
-                except Exception as e:
-                    st.error(f"Failed to parse pasted data: {e}")
+    # Input
+    st.subheader("Upload input data")
+    user_file = st.file_uploader("Upload CSV/XLSX input", type=["csv","xlsx"], key="upload_input")
+    if user_file is not None:
+        try:
+            udf = safe_read_table(user_file, filename=getattr(user_file, "name", None))
+            udf = normalize_latlon_names(udf)
+            st.session_state["user_df"] = udf
+            st.success(f"Uploaded input data: {len(udf)} rows")
+        except Exception as e:
+            st.error(f"Failed to parse uploaded input: {e}")
 
     user_df = st.session_state.get("user_df")
     if user_df is None or user_df.empty:
-        st.info("Upload or paste your input to continue.")
+        st.info("Upload input data to continue.")
         st.stop()
 
     st.subheader("Preview input (first 10 rows)")
     st.dataframe(user_df.head(10))
 
-    # Latitude/Longitude selection
+    # Lat/Lon detection
     guessed_lat, guessed_lon = detect_latlon_candidates(user_df)
     cols = list(user_df.columns)
-    lat_index = cols.index(guessed_lat) if guessed_lat in cols else (0 if len(cols)>0 else None)
-    lon_index = cols.index(guessed_lon) if guessed_lon in cols else (1 if len(cols)>1 else None)
+    lat_index = cols.index(guessed_lat) if guessed_lat in cols else 0
+    lon_index = cols.index(guessed_lon) if guessed_lon in cols else 1
     col1, col2 = st.columns(2)
     with col1:
-        user_lat_col = st.selectbox("Latitude column (choose)", options=cols, index=lat_index)
+        user_lat_col = st.selectbox("Latitude column", options=cols, index=lat_index)
     with col2:
-        user_lon_col = st.selectbox("Longitude column (choose)", options=cols, index=lon_index)
+        user_lon_col = st.selectbox("Longitude column", options=cols, index=lon_index)
 
-# ------
-# The rest of your matching logic remains exactly the same as before
-# Include apply_coord_format, filters, vectorized matching, result generation, download
-# ------
+    st.subheader("Matching options")
+    global_nth = st.number_input("Global Nth nearest", min_value=1, value=1)
+    distance_unit = st.radio("Distance unit", ("Kilometers","Miles"), horizontal=True)
+    conflict_suffix = cfg.get("backend_conflict_suffix", "_matched")
 
+    # Run matching
+    if st.button("Run matching"):
+        df_user = user_df.copy()
+        df_user[user_lat_col] = pd.to_numeric(df_user[user_lat_col], errors="coerce")
+        df_user[user_lon_col] = pd.to_numeric(df_user[user_lon_col], errors="coerce")
+        df_user = df_user.dropna(subset=[user_lat_col,user_lon_col]).reset_index(drop=True)
+        if df_user.empty:
+            st.error("No valid input rows to process.")
+            st.stop()
+
+        backend_filtered = backend_df.copy()
+        backend_lat_rad = np.radians(backend_filtered["Latitude"].to_numpy(dtype=float))
+        backend_lon_rad = np.radians(backend_filtered["Longitude"].to_numpy(dtype=float))
+
+        results_frames = []
+        input_columns = list(df_user.columns)
+        for idx, row in df_user.iterrows():
+            lat_val = float(row[user_lat_col])
+            lon_val = float(row[user_lon_col])
+            dists = vectorized_haversine(lat_val, lon_val, backend_lat_rad, backend_lon_rad)
+            j = find_nth_index(dists, global_nth)
+            if j is None:
+                empty_backend = {c: None for c in backend_filtered.columns}
+                empty_backend.update({"Distance_km": None, "Distance_miles": None, "Feasible": None})
+                backend_row = pd.Series(empty_backend)
+            else:
+                backend_row = backend_filtered.iloc[int(j)].copy()
+                dist_km = float(dists[j])
+                backend_row["Distance_km"] = round(dist_km, 6)
+                backend_row["Distance_miles"] = round(dist_km * 0.621371, 6)
+                backend_row["Feasible"] = "Feasible" if dist_km <= float(cfg.get("feasible_km",20)) else "Not Feasible"
+
+            merge_map = backend_column_merge_dict(backend_row, input_columns, conflict_suffix)
+            backend_row_renamed = backend_row.rename(index=merge_map).to_frame().T.reset_index(drop=True)
+            input_row_df = row.to_frame().T.reset_index(drop=True)
+
+            combined = pd.concat([input_row_df, backend_row_renamed], axis=1)
+            combined["Nth_used"] = global_nth
+            results_frames.append(combined)
+
+        final = pd.concat(results_frames, ignore_index=True)
+        st.success("Matching completed.")
+        st.subheader("Results (first 200 rows)")
+        st.dataframe(final.head(200), use_container_width=True)
+        csv_bytes = final.to_csv(index=False).encode("utf-8")
+        st.download_button("Download results CSV", data=csv_bytes, file_name="nearest_results.csv", mime="text/csv")
