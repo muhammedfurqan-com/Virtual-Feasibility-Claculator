@@ -160,25 +160,38 @@ st.set_page_config(page_title="Nearest Site Finder", layout="wide")
 st.title("Nearest Site Finder")
 
 # -------------------------
-# Authentication (Admin only)
+# -------------------------
+# Authentication setup (admin only)
 # -------------------------
 credentials = {
-    "admin": {
-        "name": st.secrets["credentials"]["admin"]["name"],
-        "password": st.secrets["credentials"]["admin"]["password"]
+    "usernames": {
+        "admin": {
+            "name": st.secrets["credentials"]["usernames"]["admin"]["name"],
+            "password": st.secrets["credentials"]["usernames"]["admin"]["password"]
+        }
     }
 }
 
 authenticator = stauth.Authenticate(
-    credentials=st.secrets["credentials"],  # reads usernames
+    credentials,
     cookie_name=st.secrets["cookie"]["name"],
     key=st.secrets["cookie"]["key"],
     cookie_expiry_days=int(st.secrets["cookie"]["expiry_days"])
 )
 
+# Admin login widget
 name, authentication_status, username = authenticator.login("Admin Login", "main")
 
-name, authentication_status, username = authenticator.login("Admin Login", "main")
+if authentication_status is False:
+    st.error("Username/password is incorrect")
+    st.stop()
+elif authentication_status is None:
+    st.warning("Please enter your username and password")
+    st.stop()
+
+# Show logout button in sidebar
+with st.sidebar:
+    authenticator.logout("Logout", "sidebar")
 
 # Sidebar navigation
 page = st.sidebar.radio("Navigation", ["App", "Admin"])
