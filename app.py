@@ -347,10 +347,10 @@ with tab1:
 							st.error(f"Failed to parse pasted data: {e}")
 
     # clear
-    if st.session_state.get("user_df") is not None:
-        if st.button("Clear uploaded/pasted input"):
-            st.session_state["user_df"] = None
-            st.rerun()
+	if st.session_state.get("user_df") is not None:
+		if st.button("Clear uploaded/pasted input"):
+			st.session_state["user_df"] = None
+			st.rerun()
 
     # if no input, stop
     user_df = st.session_state.get("user_df")
