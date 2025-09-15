@@ -303,8 +303,8 @@ if backend_df is None:
     st.stop()
 
     #except Exception as e:
-       st.error(f"Failed to load backend: {e}")
-       st.stop()
+st.error(f"Failed to load backend: {e}")
+st.stop()
 
     # Show backend summary
     st.write(f"**Backend rows:** {len(backend_df)}")
