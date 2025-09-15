@@ -310,7 +310,7 @@ st.stop()
 st.write(f"**Backend rows:** {len(backend_df)}")
 
     # persist user input in session
-    if "user_df" not in st.session_state:
+if "user_df" not in st.session_state:
         st.session_state["user_df"] = None
 
     # Input method
