@@ -314,7 +314,7 @@ if "user_df" not in st.session_state:
         st.session_state["user_df"] = None
 
     # Input method
-    st.subheader("1) Provide your input data")
+st.subheader("1) Provide your input data")
     tab1, tab2 = st.tabs(["Upload file", "Paste table"])
 
     with tab1:
