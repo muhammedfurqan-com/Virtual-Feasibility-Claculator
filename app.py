@@ -250,8 +250,7 @@ if bdf is not None:
     st.dataframe(bdf.head(10))
 else:
     st.info("No backend file found. Upload above.")
-
-        except Exception as e:
+except Exception as e:
             st.error(f"Failed to read backend file: {e}")
     else:
         st.info("No backend file found. Upload above.")
