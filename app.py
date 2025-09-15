@@ -320,31 +320,31 @@ with tab1:
 	user_file = st.file_uploader("Upload CSV/XLSX input (contains your points)", type=["csv","xlsx"], key="upload_input")
 	if user_file is not None:
 		try:
-                udf = safe_read_table(user_file, filename=getattr(user_file, "name", None))
-                udf = normalize_latlon_names(udf)
-                st.session_state["user_df"] = udf
-                st.success(f"Uploaded input data: {len(udf)} rows")
-except Exception as e:
-st.error(f"Failed to parse uploaded input: {e}")
-with tab2:
-	pasted = st.text_area("Paste tab-separated or comma-separated data (include header)", height=200, key="paste_input")
-	if st.button("Parse pasted data", key="parse_paste"):
-		if not pasted.strip():
-			st.warning("Please paste some data first.")
-		else:
-			try:
+			udf = safe_read_table(user_file, filename=getattr(user_file, "name", None))
+			udf = normalize_latlon_names(udf)
+			st.session_state["user_df"] = udf
+			st.success(f"Uploaded input data: {len(udf)} rows")
+		except Exception as e:
+			st.error(f"Failed to parse uploaded input: {e}")
+			with tab2:
+				pasted = st.text_area("Paste tab-separated or comma-separated data (include header)", height=200, key="paste_input")
+				if st.button("Parse pasted data", key="parse_paste"):
+					if not pasted.strip():
+						st.warning("Please paste some data first.")
+					else:
+						try:
                     # prefer tab if present
-                    if "\t" in pasted:
-                        udf = pd.read_csv(StringIO(pasted), sep="\t", engine="python")
-                    elif "," in pasted:
-                        udf = pd.read_csv(StringIO(pasted), sep=",", engine="python")
-                    else:
-                        udf = pd.read_csv(StringIO(pasted), delim_whitespace=True, engine="python")
-                    udf = normalize_latlon_names(udf)
-                    st.session_state["user_df"] = udf
-                    st.success(f"Parsed pasted input: {len(udf)} rows")
-                except Exception as e:
-                    st.error(f"Failed to parse pasted data: {e}")
+							if "\t" in pasted:
+								udf = pd.read_csv(StringIO(pasted), sep="\t", engine="python")
+							elif "," in pasted:
+								udf = pd.read_csv(StringIO(pasted), sep=",", engine="python")
+							else:
+								udf = pd.read_csv(StringIO(pasted), delim_whitespace=True, engine="python")
+								udf = normalize_latlon_names(udf)
+								st.session_state["user_df"] = udf
+								st.success(f"Parsed pasted input: {len(udf)} rows")
+						except Exception as e:
+							st.error(f"Failed to parse pasted data: {e}")
 
     # clear
     if st.session_state.get("user_df") is not None:
