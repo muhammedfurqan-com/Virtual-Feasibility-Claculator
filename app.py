@@ -180,7 +180,10 @@ authenticator = stauth.Authenticate(
 )
 
 # Admin login widget
-name, authentication_status, username = authenticator.login("Admin Login", "main")
+name, authentication_status, username = authenticator.login(
+    label="Admin Login",      # This is what the user sees
+    location="main"           # Must be "main", "sidebar", or "unrendered"
+)
 
 if authentication_status is False:
     st.error("Username/password is incorrect")
