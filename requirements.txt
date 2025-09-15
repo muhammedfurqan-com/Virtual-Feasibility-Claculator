@@ -3,5 +3,6 @@ pandas>=2.0.0
 numpy>=1.23.0
 openpyxl
 xlrd>=2.0.1
-streamlit-authenticator>=0.3.2
+streamlit-authenticator==0.3.2
+extra-streamlit-components
 PyGithub==2.3.0
