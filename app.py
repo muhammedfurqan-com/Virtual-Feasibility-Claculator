@@ -132,7 +132,8 @@ if choice == "App":
 # Admin Page (Protected)
 # ------------------------------------------------
 elif choice == "Admin":
-    name, authentication_status, username = authenticator.login("Login", "main")
+    name, authentication_status, username = authenticator.login()
+   # name, authentication_status, username = authenticator.login("Login", "main")
 
     if authentication_status:
         st.success(f"Welcome {name}! You are logged in as admin.")
