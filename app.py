@@ -18,6 +18,17 @@ import os
 import json
 import streamlit_authenticator as stauth
 from streamlit_authenticator import Authenticate
+from github import Github
+import io
+
+# GitHub setup
+token = st.secrets["GITHUB_TOKEN"]
+repo_name = st.secrets["GITHUB_REPO"]
+file_path = st.secrets["BACKEND_FILE_PATH"]
+
+g = Github(token)
+repo = g.get_repo(repo_name)
+
 # -------------------------
 # Config / filenames
 # -------------------------
@@ -41,6 +52,26 @@ def load_config():
 def save_config(cfg):
     with open(CONFIG_FILE, "w") as f:
         json.dump(cfg, f)
+def load_backend_from_github():
+    try:
+        contents = repo.get_contents(file_path)
+        data = contents.decoded_content.decode()
+        df = pd.read_csv(io.StringIO(data))
+        df = normalize_latlon_names(df)
+        return df
+    except Exception as e:
+        st.warning(f"Could not load backend file: {e}")
+        return None
+
+def save_backend_to_github(df):
+    csv_bytes = df.to_csv(index=False).encode()
+    try:
+        contents = repo.get_contents(file_path)
+        repo.update_file(contents.path, "Update backend data", csv_bytes, contents.sha)
+        st.success("✅ Backend updated in GitHub!")
+    except Exception:
+        repo.create_file(file_path, "Create backend data", csv_bytes)
+        st.success("✅ Backend created in GitHub!")
 
 cfg = load_config()
 
@@ -199,19 +230,27 @@ if page == "Admin":
             df = safe_read_table(backend_upload, filename=getattr(backend_upload, "name", None))
             df = normalize_latlon_names(df)
             # save normalized backend to disk
-            df.to_csv(BACKEND_FILE, index=False)
-            st.success(f"Saved backend ({len(df)} rows) to {BACKEND_FILE}")
+            #df.to_csv(BACKEND_FILE, index=False)
+            #st.success(f"Saved backend ({len(df)} rows) to {BACKEND_FILE}")
+		save_backend_to_github(df)
         except Exception as e:
             st.error(f"Failed to read and save backend: {e}")
 
     # Show current backend preview
-    if os.path.exists(BACKEND_FILE):
-        try:
-            bdf = safe_read_table(BACKEND_FILE, filename=BACKEND_FILE)
-            bdf = normalize_latlon_names(bdf)
-            st.subheader("Current backend preview (first 10 rows)")
-            st.dataframe(bdf.head(10))
+   # if os.path.exists(BACKEND_FILE):
+    #    try:
+     #       bdf = safe_read_table(BACKEND_FILE, filename=BACKEND_FILE)
+      #      bdf = normalize_latlon_names(bdf)
+       #     st.subheader("Current backend preview (first 10 rows)")
+        #    st.dataframe(bdf.head(10))
            # st.write(f"Columns: {list(bdf.columns)}")
+	bdf = load_backend_from_github()
+if bdf is not None:
+    st.subheader("Current backend preview (first 10 rows)")
+    st.dataframe(bdf.head(10))
+else:
+    st.info("No backend file found. Upload above.")
+
         except Exception as e:
             st.error(f"Failed to read backend file: {e}")
     else:
@@ -252,16 +291,21 @@ elif page == "App":
 
 
     # Load backend
-    if not os.path.exists(BACKEND_FILE):
-        st.warning("No backend_data.csv found. Ask Admin to upload backend data.")
-        st.stop()
+    #if not os.path.exists(BACKEND_FILE):
+     #   st.warning("No backend_data.csv found. Ask Admin to upload backend data.")
+      #  st.stop()
 
-    try:
-        backend_df = safe_read_table(BACKEND_FILE, filename=BACKEND_FILE)
-        backend_df = normalize_latlon_names(backend_df)
-    except Exception as e:
-        st.error(f"Failed to load backend: {e}")
-        st.stop()
+    #try:
+     #   backend_df = safe_read_table(BACKEND_FILE, filename=BACKEND_FILE)
+      #  backend_df = normalize_latlon_names(backend_df)
+backend_df = load_backend_from_github()
+if backend_df is None:
+    st.warning("No backend file found in GitHub. Ask Admin to upload backend data.")
+    st.stop()
+
+    #except Exception as e:
+       st.error(f"Failed to load backend: {e}")
+       st.stop()
 
     # Show backend summary
     st.write(f"**Backend rows:** {len(backend_df)}")
