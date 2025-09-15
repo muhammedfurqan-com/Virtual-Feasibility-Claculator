@@ -6,6 +6,37 @@ from io import BytesIO
 from github import Github
 import streamlit_authenticator as stauth
 
+import streamlit as st
+import streamlit_authenticator as stauth
+
+# Load configuration from secrets.toml
+config = {
+    "credentials": {
+        "usernames": {
+            "admin": {
+                "name": st.secrets["credentials"]["usernames"]["admin"]["name"],
+                "password": st.secrets["credentials"]["usernames"]["admin"]["password"],
+            }
+        }
+    },
+    "cookie": {
+        "expiry_days": st.secrets["cookie"]["expiry_days"],
+        "key": st.secrets["cookie"]["key"],
+        "name": st.secrets["cookie"]["name"],
+    },
+    "preauthorized": {
+        "emails": st.secrets["preauthorized"]["emails"],
+    },
+}
+
+authenticator = stauth.Authenticate(
+    config["credentials"],
+    config["cookie"]["name"],
+    config["cookie"]["key"],
+    config["cookie"]["expiry_days"],
+    config["preauthorized"],
+)
+
 # ================================================================
 # GitHub Setup
 # ================================================================
@@ -78,8 +109,8 @@ def find_nearest_sites(df, lat, lon, n=5):
 # ================================================================
 # Authentication Setup (Admin Only)
 # ================================================================
-usernames = st.secrets["credentials"]["usernames"]
-passwords = st.secrets["credentials"]["passwords"]
+#usernames = st.secrets["credentials"]["usernames"]
+#passwords = st.secrets["credentials"]["passwords"]
 
 credentials = {
     "usernames": {
