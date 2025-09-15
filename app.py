@@ -307,7 +307,7 @@ st.error(f"Failed to load backend: {e}")
 st.stop()
 
     # Show backend summary
-    st.write(f"**Backend rows:** {len(backend_df)}")
+st.write(f"**Backend rows:** {len(backend_df)}")
 
     # persist user input in session
     if "user_df" not in st.session_state:
