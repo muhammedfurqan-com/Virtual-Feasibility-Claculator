@@ -176,7 +176,7 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=int(st.secrets["cookie"]["expiry_days"])
 )
 
-name, authentication_status, username = authenticator.login("Admin Login", "main"))
+name, authentication_status, username = authenticator.login("Admin Login", "main")
 
 name, authentication_status, username = authenticator.login("Admin Login", "main")
 
