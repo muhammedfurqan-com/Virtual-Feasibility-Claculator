@@ -14,10 +14,13 @@ def load_backend_from_github():
     repo = get_github_repo()
     try:
         contents = repo.get_contents(st.secrets["BACKEND_FILE_PATH"])
-        return pd.read_csv(io.BytesIO(contents.decoded_content))
-    except Exception:
-        st.warning("⚠️ No backend file found yet. Please upload from Admin page.")
+        df = pd.read_csv(io.BytesIO(contents.decoded_content))
+        st.success("✅ Backend data loaded successfully!")
+        return df
+    except Exception as e:
+        st.error(f"❌ Could not load backend file: {e}")
         return pd.DataFrame()
+
 
 def save_backend_to_github(df):
     repo = get_github_repo()
