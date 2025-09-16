@@ -4,6 +4,18 @@ import streamlit_authenticator as stauth
 from github import Github
 import io
 
+
+# Authentication
+authenticator = stauth.Authenticate(
+    credentials,
+    cookie_name=st.secrets["cookie"]["name"],
+    key=st.secrets["cookie"]["key"],
+    cookie_expiry_days=st.secrets["cookie"]["expiry_days"]
+)
+
+# Do login ONCE here
+name, authentication_status, username = authenticator.login("Login", "main")
+
 # --------------------------
 # 1. Load authentication config
 # --------------------------
@@ -89,16 +101,6 @@ if page == "User Page":
 elif page == "Admin Page":
     st.header("🔑 Admin Panel")
 
-    name, authentication_status, username = authenticator.login()
-
-    if authentication_status is False:
-        st.error("Invalid username or password")
-    elif authentication_status is None:
-        st.warning("Please enter your username and password")
-    elif authentication_status:
-        st.success(f"Welcome {name}!")
-
-        authenticator.logout("Logout", "sidebar")
 
         st.subheader("Upload Backend File")
         uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
