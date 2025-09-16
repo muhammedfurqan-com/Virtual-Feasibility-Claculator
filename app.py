@@ -102,8 +102,8 @@ elif page == "Admin Page":
     st.header("🔑 Admin Panel")
 
 
-        st.subheader("Upload Backend File")
-        uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+    st.subheader("Upload Backend File")
+    uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
         if uploaded_file is not None:
             try:
                 df = pd.read_csv(uploaded_file)
