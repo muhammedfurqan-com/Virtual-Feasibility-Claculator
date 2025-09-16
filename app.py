@@ -4,36 +4,24 @@ import streamlit_authenticator as stauth
 from github import Github
 import io
 
+# --------------------------
+# 1. Authentication config
+# --------------------------
+credentials = {
+    "usernames": {
+        "admin": {
+            "name": st.secrets["credentials"]["usernames"]["admin"]["name"],
+            "password": st.secrets["credentials"]["usernames"]["admin"]["password"],
+        }
+    }
+}
 
-# Authentication
 authenticator = stauth.Authenticate(
     credentials,
     st.secrets["cookie"]["name"],      # cookie name
     st.secrets["cookie"]["key"],       # signature key
     cookie_expiry_days=st.secrets["cookie"]["expiry_days"]
 )
-
-# Do login ONCE here
-name, authentication_status, username = authenticator.login("Login", "main")
-
-# --------------------------
-# 1. Load authentication config
-# --------------------------
-config = {
-    "credentials": {
-        "usernames": {
-            "admin": {
-                "name": st.secrets["credentials"]["usernames"]["admin"]["name"],
-                "password": st.secrets["credentials"]["usernames"]["admin"]["password"]
-            }
-        }
-    },
-    "cookie": {
-        "expiry_days": st.secrets["cookie"]["expiry_days"],
-        "key": st.secrets["cookie"]["key"],
-        "name": st.secrets["cookie"]["name"]
-    }
-}
 
 # --------------------------
 # 2. GitHub persistence helpers
@@ -91,9 +79,7 @@ if page == "User Page":
         st.info("No site data available. Please ask admin to upload.")
     else:
         st.write("Available sites:", df.head())
-
-        # TODO: Replace with your actual site finding logic
-        st.success("Site finder logic goes here!")
+        st.success("✅ Site finder logic goes here!")
 
 # --------------------------
 # 5. Admin Page (login required)
@@ -101,13 +87,25 @@ if page == "User Page":
 elif page == "Admin Page":
     st.header("🔑 Admin Panel")
 
+    name, authentication_status, username = authenticator.login("Admin Login", "main")
 
-    st.subheader("Upload Backend File")
-    uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
-    if uploaded_file is not None:
-        try:
-            df = pd.read_csv(uploaded_file)
-            save_backend_to_github(df)
-            st.success("✅ Backend file saved to GitHub!")
-        except Exception as e:
-            st.error(f"Error uploading file: {e}")
+    if authentication_status:
+        st.success(f"Welcome, {name}!")
+
+        st.subheader("Upload Backend File")
+        uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+        if uploaded_file is not None:
+            try:
+                df = pd.read_csv(uploaded_file)
+                save_backend_to_github(df)
+                st.success("✅ Backend file saved to GitHub!")
+            except Exception as e:
+                st.error(f"Error uploading file: {e}")
+
+        authenticator.logout("Logout", "sidebar")
+
+    elif authentication_status is False:
+        st.error("❌ Invalid username or password")
+
+    elif authentication_status is None:
+        st.warning("Please enter your username and password")
