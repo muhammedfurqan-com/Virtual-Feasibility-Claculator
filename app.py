@@ -104,10 +104,10 @@ elif page == "Admin Page":
 
     st.subheader("Upload Backend File")
     uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
-        if uploaded_file is not None:
-            try:
-                df = pd.read_csv(uploaded_file)
-                save_backend_to_github(df)
-                st.success("✅ Backend file saved to GitHub!")
-            except Exception as e:
-                st.error(f"Error uploading file: {e}")
+    if uploaded_file is not None:
+        try:
+            df = pd.read_csv(uploaded_file)
+            save_backend_to_github(df)
+            st.success("✅ Backend file saved to GitHub!")
+        except Exception as e:
+            st.error(f"Error uploading file: {e}")
