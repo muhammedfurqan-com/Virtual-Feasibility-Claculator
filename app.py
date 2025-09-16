@@ -5,6 +5,7 @@ from github import Github
 import io
 import os
 import tempfile
+import base64
 
 # --------------------------
 # GitHub helpers
@@ -45,19 +46,27 @@ def save_backend_to_github(df):
             return False
 
 def load_backend_from_github():
-    """Robust loader: try multiple decodings and read methods, with debug output."""
     repo = get_github_repo()
-    if repo is None:
-        return pd.DataFrame()
-
-    path = st.secrets["BACKEND_FILE_PATH"]
     try:
-        contents = repo.get_contents(path)
-    except Exception as e:
-        st.error(f"❌ Could not fetch file at '{path}' from GitHub: {e}")
-        return pd.DataFrame()
+        contents = repo.get_contents(st.secrets["BACKEND_FILE_PATH"])
 
-    raw = contents.decoded_content  # often bytes, sometimes other
+        # contents.content is base64 encoded string when encoding == 'base64'
+        if contents.encoding == "base64":
+            csv_bytes = base64.b64decode(contents.content)
+            csv_content = csv_bytes.decode("utf-8", errors="ignore")
+        else:
+            # fallback: assume it's plain text already
+            csv_content = contents.content
+
+        # Pass to pandas
+        df = pd.read_csv(io.StringIO(csv_content))
+
+        st.success("✅ Backend data loaded successfully!")
+        return df
+
+    except Exception as e:
+        st.error(f"❌ Could not load backend file: {e}")
+        return pd.DataFrame()
 
     # Debug: type + length
     try:
