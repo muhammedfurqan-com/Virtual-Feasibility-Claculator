@@ -14,12 +14,11 @@ def load_backend_from_github():
     repo = get_github_repo()
     try:
         contents = repo.get_contents(st.secrets["BACKEND_FILE_PATH"])
-# Debug info
-        st.write(f"DEBUG - Type: {type(contents.decoded_content)}, Length: {len(contents.decoded_content)}")
-        # Decode to string explicitly
+
+        # Decode GitHub file as UTF-8
         csv_content = contents.decoded_content.decode("utf-8", errors="ignore")
 
-        # Pass directly to pandas
+        # Read into DataFrame
         df = pd.read_csv(io.StringIO(csv_content), encoding="utf-8")
 
         st.success("✅ Backend data loaded successfully!")
@@ -28,12 +27,11 @@ def load_backend_from_github():
     except Exception as e:
         st.error(f"❌ Could not load backend file: {e}")
         return pd.DataFrame()
-       # st.write(f"DEBUG - Type: {type(contents.decoded_content)}, Length: {len(contents.decoded_content)}")
 
 def save_backend_to_github(df):
     repo = get_github_repo()
     csv_buf = io.StringIO()
-    df.to_csv(csv_buf, index=False)
+    df.to_csv(csv_buf, index=False, encoding="utf-8")  # ✅ enforce UTF-8
     csv_content = csv_buf.getvalue()
 
     try:
@@ -82,7 +80,7 @@ elif page == "Admin Page":
     uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
     if uploaded_file is not None:
         try:
-            df = pd.read_csv(uploaded_file)
+            df = pd.read_csv(uploaded_file, encoding="utf-8")  # ✅ enforce UTF-8
             save_backend_to_github(df)
             st.success("✅ Backend file saved to GitHub!")
         except Exception as e:
