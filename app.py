@@ -27,6 +27,8 @@ def load_backend_from_github():
     except Exception as e:
         st.error(f"❌ Could not load backend file: {e}")
         return pd.DataFrame()
+        st.write(f"DEBUG - Type: {type(contents.decoded_content)}, Length: {len(contents.decoded_content)}")
+
 def save_backend_to_github(df):
     repo = get_github_repo()
     csv_buf = io.StringIO()
