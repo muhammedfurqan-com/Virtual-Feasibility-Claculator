@@ -12,27 +12,16 @@ config = {
         "usernames": {
             "admin": {
                 "name": st.secrets["credentials"]["usernames"]["admin"]["name"],
-                "password": st.secrets["credentials"]["usernames"]["admin"]["password"],
+                "password": st.secrets["credentials"]["usernames"]["admin"]["password"]
             }
         }
     },
     "cookie": {
         "expiry_days": st.secrets["cookie"]["expiry_days"],
         "key": st.secrets["cookie"]["key"],
-        "name": st.secrets["cookie"]["name"],
-    },
-    "preauthorized": {
-        "emails": st.secrets["preauthorized"]["emails"],
-    },
+        "name": st.secrets["cookie"]["name"]
+    }
 }
-
-authenticator = stauth.Authenticate(
-    config["credentials"],
-    config["cookie"]["name"],
-    config["cookie"]["key"],
-    config["cookie"]["expiry_days"],
-    config["preauthorized"],
-)
 
 # --------------------------
 # 2. GitHub persistence helpers
