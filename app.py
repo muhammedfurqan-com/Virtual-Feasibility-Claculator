@@ -49,20 +49,23 @@ def load_backend_from_github():
     repo = get_github_repo()
     try:
         contents = repo.get_contents(st.secrets["BACKEND_FILE_PATH"])
+        raw = contents.decoded_content  # bytes
 
-        if contents.encoding == "base64":
-            csv_bytes = base64.b64decode(contents.content)
-            csv_content = csv_bytes.decode("utf-8", errors="ignore")
-        else:
-            csv_content = contents.content
+        # Debug info
+        st.write(f"DEBUG - First 200 chars of CSV:\n{raw[:200]}")
 
-        # DEBUG: show first 200 characters of CSV
-        st.write("DEBUG - First 200 chars of CSV:", csv_content[:200])
+        # Try multiple encodings and delimiters
+        for encoding in ["utf-8-sig", "utf-8", "latin1"]:
+            try:
+                df = pd.read_csv(io.BytesIO(raw), encoding=encoding, sep=None, engine="python")
+                if not df.empty:
+                    st.success(f"✅ Backend data loaded successfully with {encoding}")
+                    return df
+            except Exception as e:
+                st.write(f"DEBUG - Failed with {encoding}: {e}")
 
-        df = pd.read_csv(io.StringIO(csv_content))
-
-        st.success("✅ Backend data loaded successfully!")
-        return df
+        st.error("❌ Could not parse backend file with any encoding.")
+        return pd.DataFrame()
 
     except Exception as e:
         st.error(f"❌ Could not load backend file: {e}")
