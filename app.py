@@ -14,15 +14,8 @@ def load_backend_from_github():
     repo = get_github_repo()
     try:
         contents = repo.get_contents(st.secrets["BACKEND_FILE_PATH"])
-        raw_bytes = contents.decoded_content
-
-        # Try UTF-8 first, fallback to latin1
-        try:
-            text = raw_bytes.decode("utf-8")
-        except UnicodeDecodeError:
-            text = raw_bytes.decode("latin1")
-
-        df = pd.read_csv(io.StringIO(text))
+        csv_content = contents.decoded_content.decode("utf-8", errors="ignore")  
+        df = pd.read_csv(io.StringIO(csv_content))
         st.success("✅ Backend data loaded successfully!")
         return df
 
