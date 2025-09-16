@@ -14,7 +14,7 @@ def load_backend_from_github():
     repo = get_github_repo()
     try:
         contents = repo.get_contents(st.secrets["BACKEND_FILE_PATH"])
-        df = pd.read_csv(io.BytesIO(contents.decoded_content))
+        df = pd.read_csv(io.StringIO(contents.decoded_content.decode("utf-8")))
         st.success("✅ Backend data loaded successfully!")
         return df
     except Exception as e:
