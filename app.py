@@ -6,11 +6,7 @@ import io
 
 
 # Authentication
-authenticator = stauth.Authenticate(
-    credentials,
-    cookie_name=st.secrets["cookie"]["name"],
-    key=st.secrets["cookie"]["key"],
-    cookie_expiry_days=st.secrets["cookie"]["expiry_days"]
+authenticator = stauth.Authenticate(credentials,cookie_name=st.secrets["cookie"]["name"],key=st.secrets["cookie"]["key"],cookie_expiry_days=st.secrets["cookie"]["expiry_days"]
 )
 
 # Do login ONCE here
